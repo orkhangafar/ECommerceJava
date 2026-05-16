@@ -1,0 +1,16 @@
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ecomm-postgres
+    environment:
+      POSTGRES_DB: ecomm_db
+      POSTGRES_USER: ${DB_USERNAME:postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

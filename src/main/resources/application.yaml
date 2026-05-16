@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: ecomm
+
+  # Database Tənzimləmələri (Docker Postgres)
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ecomm_db?sslmode=disable}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      connection-timeout: 20000 # 20 saniyə
+      maximum-pool-size: 3 # Sayı 10-dan 3-ə endirin (resursu qorumaq üçün)
+      max-lifetime: 600000 # 10 dəqiqə
+  # JPA və Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Fayl yükləmə limitləri (Şəkillər üçün)
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+  # Lokallaşdırma (AZ hərfləri üçün mütləqdir)
+  messages:
+    basename: messages
+    encoding: UTF-8
+  web:
+    locale-resolver: accept-header
+    locale: en
+
+  # Email Tənzimləmələri (Signup üçün)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# Sənin xüsusi şəkil yolun
+project:
+  image: "images/products/"
+
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  expiration-ms: ${JWT_ACCESS_EXP:900000}        # 15 dəqiqə (Access Token)
+  refresh-expiration-ms: ${JWT_REFRESH_EXP:604800000}  # 7 gün (Refresh Token)
