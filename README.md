@@ -9,7 +9,7 @@ Spring Boot + PostgreSQL əsaslı e-ticarət backend API-si.
 - PostgreSQL
 - JWT Authentication (HttpOnly Cookie)
 - MapStruct
-- Stripe Payment (tezliklə)
+- Stripe Payment
 
 ## Qurulum
 
@@ -25,6 +25,8 @@ DB_PASSWORD=your_password
 JWT_SECRET_KEY=your_secret_key
 MAIL_USERNAME=your_email
 MAIL_PASSWORD=your_app_password
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
 
 ### İşə salma
 
@@ -43,6 +45,20 @@ MAIL_PASSWORD=your_app_password
 | Cart | `/api/v1/cart/**` |
 | Orders | `/api/v1/orders/**` |
 | Addresses | `/api/v1/addresses/**` |
+| Payments | `/api/v1/payments/**` |
+| Reviews | `/api/v1/reviews/**` |
+
+## Modullar
+
+- **Auth** — JWT, 2FA, refresh token, şifrə sıfırlama
+- **User** — profil, rol idarəetməsi
+- **Product** — CRUD, şəkil yükləmə, filtr
+- **Category** — CRUD
+- **Cart** — dynamic cart, real-time qiymət yeniləmə
+- **Order** — sifariş idarəetməsi, status izləmə
+- **Payment** — Stripe inteqrasiyası, scalable gateway arxitekturası
+- **Review** — yalnız alınmış məhsula rəy, ortalama reytinq
+- **Address** — çoxlu ünvan, default ünvan
 
 ## Təhlükəsizlik
 
