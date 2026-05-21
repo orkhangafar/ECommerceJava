@@ -67,3 +67,5 @@ STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
 - 2FA (Email OTP)
 - Brute-force qoruması
 - Role-based access control (USER, STAFF, ADMIN)
+- CORS konfiqurasiyası
+- Rate Limiting (60 sorğu / 15 dəqiqə)
