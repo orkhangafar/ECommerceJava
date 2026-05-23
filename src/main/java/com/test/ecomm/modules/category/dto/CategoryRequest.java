@@ -14,4 +14,6 @@ public class CategoryRequest {
     @NotBlank(message = "{category.name.notblank}")
     @Size(min = 3, max = 25, message = "{category.name.size}")
     private String categoryName;
+
+    private Long parentId;
 }

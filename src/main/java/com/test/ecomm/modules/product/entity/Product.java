@@ -27,6 +27,8 @@ public class Product extends BaseEntity {
 
     private String image;
 
+    private String imageId;
+
     @Column(nullable = false, length = 500)
     private String description;
 

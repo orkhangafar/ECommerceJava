@@ -19,7 +19,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional(readOnly = true)
@@ -32,22 +35,45 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public CategoryResponse createCategory(CategoryRequest categoryRequest) {
-        if (categoryRepository.existsByCategoryName(categoryRequest.getCategoryName()))
+        if (categoryRepository.existsByCategoryName(categoryRequest.getCategoryName())) {
             throw new BadRequestException("Bu adda kateqoriya artıq mövcuddur!");
+        }
+
         Category category = categoryMapper.toEntity(categoryRequest);
+
+        // ID generatordan gəlsin deyə öncə müvəqqəti boş path ilə qeyd edirik
+        category.setPath("");
         Category savedCategory = categoryRepository.save(category);
-        return categoryMapper.toResponse(savedCategory);
+
+        if (categoryRequest.getParentId() == null) {
+            savedCategory.setPath(savedCategory.getCategoryId() + "/");
+        } else {
+            Category parent = categoryRepository.findById(categoryRequest.getParentId())
+                    .orElseThrow(() -> new ResourceNotFoundException("category", "parentId", categoryRequest.getParentId()));
+            savedCategory.setPath(parent.getPath() + savedCategory.getCategoryId() + "/");
+        }
+        return categoryMapper.toResponse(categoryRepository.save(savedCategory));
     }
 
     @Override
     @Transactional
     public CategoryResponse updateCategory(CategoryRequest categoryRequest, Long categoryId) {
-        if (categoryRepository.existsByCategoryNameAndCategoryIdNot(categoryRequest.getCategoryName(), categoryId))
+        if (categoryRepository.existsByCategoryNameAndCategoryIdNot(categoryRequest.getCategoryName(), categoryId)) {
             throw new BadRequestException("Bu adda kateqoriya artıq mövcuddur!");
+        }
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("category", "categoryId", categoryId));
 
         categoryMapper.updateEntity(categoryRequest, category);
+
+        if (categoryRequest.getParentId() == null) {
+            category.setPath(category.getCategoryId() + "/");
+        } else {
+            Category parent = categoryRepository.findById(categoryRequest.getParentId())
+                    .orElseThrow(() -> new ResourceNotFoundException("category", "parentId", categoryRequest.getParentId()));
+            category.setPath(parent.getPath() + category.getCategoryId() + "/");
+        }
+
         return categoryMapper.toResponse(categoryRepository.save(category));
     }
 
@@ -83,5 +109,32 @@ public class CategoryServiceImpl implements CategoryService {
                 .totalPages(page.getTotalPages())
                 .lastPage(page.isLast())
                 .build();
+    }
+
+    @Override
+    public List<CategoryResponse> getCategoryTree() {
+        List<Category> allCategories = categoryRepository.findAll();
+
+        Map<Long, CategoryResponse> responseMap = new HashMap<>();
+        List<CategoryResponse> rootCategories = new ArrayList<>();
+
+        for (Category cat : allCategories) {
+            CategoryResponse resp = categoryMapper.toResponse(cat);
+            responseMap.put(resp.getCategoryId(), resp);
+        }
+
+        for (CategoryResponse resp : responseMap.values()) {
+            if (resp.getParentId() == null) {
+                // Valideyni yoxdursa, deməli əsas kateqoriyadır
+                rootCategories.add(resp);
+            } else {
+                CategoryResponse parent = responseMap.get(resp.getParentId());
+                if (parent != null) {
+                    parent.getChildren().add(resp);
+                }
+            }
+        }
+
+        return rootCategories;
     }
 }

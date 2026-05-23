@@ -34,6 +34,8 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     implementation("com.stripe:stripe-java:32.1.0")
     implementation("com.bucket4j:bucket4j_jdk17-core:8.19.0")
+    implementation("com.cloudinary:cloudinary-http5:2.3.2")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
 	compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.6.3")

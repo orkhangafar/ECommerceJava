@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
@@ -55,5 +57,10 @@ public class CategoryController {
 
         PageResponse<CategoryResponse> response = categoryService.getAllCategories(request);
         return ResponseEntity.ok(ApiResponse.success(response, "Kateqoriyalar uğurla gətirildi"));
+    }
+
+    @GetMapping("/categories/tree")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getCategoryTree() {
+        return ResponseEntity.ok(ApiResponse.success(categoryService.getCategoryTree(), "Kateqoriya ağacı"));
     }
 }

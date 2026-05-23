@@ -3,6 +3,7 @@ package com.test.ecomm.modules.product.service.impl;
 import com.test.ecomm.common.dto.PageResponse;
 import com.test.ecomm.common.exception.ResourceNotFoundException;
 import com.test.ecomm.common.util.SecurityUtils;
+import com.test.ecomm.infrastructure.file.dto.FileResponse;
 import com.test.ecomm.modules.category.entity.Category;
 import com.test.ecomm.modules.category.repository.CategoryRepository;
 import com.test.ecomm.modules.product.dto.ProductFilterRequest;
@@ -13,7 +14,7 @@ import com.test.ecomm.modules.product.mapper.ProductMapper;
 import com.test.ecomm.modules.product.repository.ProductRepository;
 import com.test.ecomm.modules.product.repository.specification.ProductSpecifications;
 import com.test.ecomm.modules.product.service.ProductService;
-import com.test.ecomm.infrastructure.file.FileService;
+import com.test.ecomm.infrastructure.file.service.FileService;
 import com.test.ecomm.modules.user.entity.User;
 import com.test.ecomm.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -54,20 +56,16 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse addProduct(Long categoryId, ProductRequest request) {
 
         String email = SecurityUtils.getCurrentUserEmail();
-
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
-
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId));
-
         Product product = productMapper.toEntity(request);
-
         product.setCategory(category);
         product.setCreatedBy(user);
-
         if (product.getImage() == null || product.getImage().isBlank()) {
-            product.setImage("default.png");
+            product.setImage(null);
+            product.setImageId(null);
         }
         product.setSpecialPrice(
                 calculateSpecialPrice(product.getPrice(), product.getDiscount())
@@ -82,10 +80,8 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse updateProduct(Long productId, ProductRequest request) {
         Product product = findProduct(productId);
         checkOwnership(product);
-
         productMapper.updateEntity(request, product);
         product.setSpecialPrice(calculateSpecialPrice(product.getPrice(), product.getDiscount()));
-
         Product updated = productRepository.save(product);
         return productMapper.toResponse(updated);
     }
@@ -95,9 +91,12 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse deleteProduct(Long productId) {
         Product product = findProduct(productId);
         checkOwnership(product);
-        fileService.deleteImage(path, product.getImage());
+        String oldImageId = product.getImageId();
         ProductResponse response = productMapper.toResponse(product);
         productRepository.delete(product);
+        if (oldImageId != null && !oldImageId.isBlank()) {
+            fileService.deleteImage(oldImageId);
+        }
         return response;
     }
 
@@ -111,10 +110,16 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse updateProductImage(Long productId, MultipartFile image) {
         Product product = findProduct(productId);
         checkOwnership(product);
-        fileService.deleteImage(path, product.getImage());
-        String fileName = fileService.uploadImage(path, image);
-        product.setImage(fileName);
-        return productMapper.toResponse(productRepository.save(product));
+        String oldImageId = product.getImageId();
+        FileResponse fileResponse = fileService.uploadImage(path, image);
+        product.setImage(fileResponse.getFileUrl());
+        product.setImageId(fileResponse.getFileId());
+
+        Product savedProduct = productRepository.save(product);
+        if (oldImageId != null && !oldImageId.isBlank()) {
+            fileService.deleteImage(oldImageId);
+        }
+        return productMapper.toResponse(savedProduct);
     }
 
     @Override
@@ -132,7 +137,7 @@ public class ProductServiceImpl implements ProductService {
         Specification<Product> spec = Specification
                 .where(ProductSpecifications.hasName(request.getName()))
                 .and(ProductSpecifications.hasPriceBetween(request.getMinPrice(), request.getMaxPrice()))
-                .and(ProductSpecifications.hasCategory(request.getCategoryId()));
+                .and(ProductSpecifications.hasCategory(request.getCategoryId(), categoryRepository));
 
         Page<Product> page = productRepository.findAll(spec, pageable);
 
@@ -161,11 +166,11 @@ public class ProductServiceImpl implements ProductService {
 
         String email = SecurityUtils.getCurrentUserEmail();
 
-        boolean isAdmin = SecurityContextHolder.getContext()
-                .getAuthentication()
+        boolean isAdmin = Objects.requireNonNull(SecurityContextHolder.getContext()
+                        .getAuthentication())
                 .getAuthorities()
                 .stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                .anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_ADMIN"));
 
         if (isAdmin) return;
 

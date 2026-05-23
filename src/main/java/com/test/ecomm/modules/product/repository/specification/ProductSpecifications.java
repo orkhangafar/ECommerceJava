@@ -1,8 +1,12 @@
 package com.test.ecomm.modules.product.repository.specification;
 
+import com.test.ecomm.modules.category.entity.Category;
+import com.test.ecomm.modules.category.repository.CategoryRepository;
 import com.test.ecomm.modules.product.entity.Product;
+import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import java.math.BigDecimal;
+import java.util.Optional;
 
 public class ProductSpecifications {
 
@@ -30,11 +34,19 @@ public class ProductSpecifications {
         };
     }
 
-    // Buraya filtr də əlavə etmək olar
-    public static Specification<Product> hasCategory(Long categoryId) {
+    public static Specification<Product> hasCategory(Long categoryId, CategoryRepository categoryRepository) {
         return (root, query, cb) -> {
-            if (categoryId == null) return cb.conjunction();
-            return cb.equal(root.get("category").get("categoryId"), categoryId);
+            if (categoryId == null) {
+                return cb.conjunction();
+            }
+            Optional<Category> categoryOpt = categoryRepository.findById(categoryId);
+
+            if (categoryOpt.isEmpty()) {
+                return cb.conjunction();
+            }
+            String categoryPath = categoryOpt.get().getPath();
+            Join<Product, Category> categoryJoin = root.join("category");
+            return cb.like(categoryJoin.get("path"), categoryPath + "%");
         };
     }
 }

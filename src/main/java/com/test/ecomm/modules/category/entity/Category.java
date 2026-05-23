@@ -1,21 +1,20 @@
 package com.test.ecomm.modules.category.entity;
 
 import com.test.ecomm.common.entity.BaseEntity;
-import com.test.ecomm.modules.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 @Entity
+@Table(name = "categories", indexes = {
+        @Index(name = "idx_category_path", columnList = "path")
+})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "categories")
 public class Category extends BaseEntity {
 
     @Id
@@ -25,11 +24,12 @@ public class Category extends BaseEntity {
     @Column(nullable = false, length = 25, unique = true)
     private String categoryName;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<Product> products = new ArrayList<>();
+    private Long parentId;
 
-    //PEŞƏKAR METODLAR
+    @Column(nullable = false)
+    private String path;
+
+    // PEŞƏKAR METODLAR
 
     @Override
     public boolean equals(Object o) {
@@ -49,6 +49,8 @@ public class Category extends BaseEntity {
         return "Category{" +
                 "categoryId=" + categoryId +
                 ", categoryName='" + categoryName + '\'' +
+                ", parentId=" + parentId +
+                ", path='" + path + '\'' +
                 '}';
     }
 }
