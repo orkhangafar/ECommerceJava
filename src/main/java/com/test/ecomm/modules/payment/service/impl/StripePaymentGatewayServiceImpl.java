@@ -59,10 +59,8 @@ public class StripePaymentGatewayServiceImpl implements PaymentGatewayService {
     @Override
     public void confirm(Payment payment, String transactionId) {
         try {
-            // Stripe-dan ödənişin statusunu yoxlayırıq
             PaymentIntent intent = stripeClient.v1().paymentIntents().retrieve(transactionId);
 
-            // Əgər ödəniş uğurlu deyilsə, xəta atırıq
             if (!"succeeded".equals(intent.getStatus())) {
                 throw new BadRequestException("Stripe-da ödəniş hələ tamamlanmayıb. Status: " + intent.getStatus());
             }
@@ -71,7 +69,6 @@ public class StripePaymentGatewayServiceImpl implements PaymentGatewayService {
         }
     }
 
-    // --- DƏYİŞİLƏN HİSSƏ: Bu servisin STRIPE metodu üçün işlədiyini bəyan edirik ---
     @Override
     public PaymentMethod getSupportedMethod() {
         return PaymentMethod.STRIPE;

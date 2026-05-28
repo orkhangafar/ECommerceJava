@@ -118,7 +118,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("Review", "reviewId", reviewId));
-        if (review.getUser().getUserId().equals(user.getUserId())) {
+        if (!review.getUser().getUserId().equals(user.getUserId())) {
             throw new BadRequestException("Bu rəyə müdaxilə etmək icazəniz yoxdur");
         }
         return review;

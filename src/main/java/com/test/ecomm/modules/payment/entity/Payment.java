@@ -36,8 +36,8 @@ public class Payment extends BaseEntity {
     private BigDecimal amount;
 
     @Column(name = "gateway_transaction_id", length = 255)
-    private String gatewayTransactionId; // Stripe-da paymentIntendId, Payriff-də orderId olacaq
+    private String gatewayTransactionId;
 
     @Column(name = "gateway_client_secret", length = 500)
-    private String gatewayClientSecret;  // Frontend-in ödənişi tamamlaması üçün ortaq token/secret
+    private String gatewayClientSecret;
 }

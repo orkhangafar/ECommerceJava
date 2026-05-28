@@ -117,7 +117,7 @@ public class UserServiceImpl implements UserService {
     public ApiResponse<?> assignRole(Long userId, String roleName) {
         User user = findUserById(userId);
         Role role = roleRepository.findByRoleName(AppRole.valueOf(roleName))
-                .orElseThrow(() -> new BadRequestException("Rol Tapılmadı " + roleName));
+                .orElseThrow(() -> new BadRequestException("Rol tapılmadı: " + roleName));
 
         user.getRoles().add(role);
         userRepository.save(user);

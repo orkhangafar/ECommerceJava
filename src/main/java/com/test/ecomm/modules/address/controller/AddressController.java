@@ -42,7 +42,7 @@ public class AddressController {
         return ResponseEntity.ok(addressService.deleteAddress(addressId));
     }
 
-    @PatchMapping("/{addressID}/default")
+    @PatchMapping("/{addressId}/default")
     public ResponseEntity<ApiResponse<AddressResponse>> setDefaultAddess(
             @PathVariable Long addressId) {
         return ResponseEntity.ok(addressService.setDefaultAddress(addressId));
